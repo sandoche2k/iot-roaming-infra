@@ -1,0 +1,12 @@
+---
+- name: reload ssh
+  become: yes
+  systemd:
+    name: sshd
+    state: reloaded
+
+- name: restart networking
+  become: yes
+  systemd:
+    name: networking
+    state: restarted

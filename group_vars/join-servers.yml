@@ -1,0 +1,11 @@
+postgres:
+  database: chirpstack_js
+  user: chirpstack_js
+  password: chirpstack_js
+
+join_server_version: 3.17.5-test.1+dance-0.1
+join_server:
+  external_api_port: 8080
+  api_server_port: 8001
+  join_server_port: 443
+  download_url: "https://gitlab.rd.nic.fr/dance/chirpstack/application-server/-/releases/{{ join_server_version }}/downloads/chirpstack-application-server_linux-amd64"

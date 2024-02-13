@@ -1,0 +1,99 @@
+---
+- name: Download binary to hosts
+  become: yes
+  get_url:
+    url: "{{ join_server.download_url }}"
+    dest: /usr/local/bin/chirpstack-application-server
+    owner: root
+    group: root
+    mode: 0755
+  notify: restart chirpstack as
+
+- name: Create user
+  become: yes
+  user:
+    system: true
+    name: appserver
+    create_home: false
+    shell: /usr/sbin/nologin
+    home: /etc/chirpstack-application-server
+
+- name: Create configs directory
+  become: yes
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: appserver
+    group: appserver
+    mode: 0700
+  loop:
+    - /etc/chirpstack-application-server
+    - /etc/chirpstack-application-server/certs
+
+- name: Create log directory
+  become: yes
+  file:
+    path: /var/log/chirpstack-application-server/
+    state: directory
+    owner: appserver
+    group: appserver
+
+- name: Copy CA certificate
+  become: yes
+  copy:
+    src: 'certs.d/{{ org }}/ca.pem'
+    dest: /etc/chirpstack-application-server/certs/ca.pem
+    owner: appserver
+    group: appserver
+    mode: 0644
+  notify: restart chirpstack as
+
+- name: Copy certificates
+  become: yes
+  copy:
+    src: 'certs.d/{{ org }}/{{ inventory_hostname }}/'
+    dest: /etc/chirpstack-application-server/certs
+    owner: appserver
+    group: appserver
+    mode: 0644
+  notify: restart chirpstack as
+
+- name: Install service
+  become: yes
+  copy:
+    src: chirpstack-application-server.service
+    dest: /etc/systemd/system/chirpstack-application-server.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart chirpstack as
+
+- name: Copy configuration
+  become: yes
+  template:
+    src: 'chirpstack-application-server.toml'
+    dest: /etc/chirpstack-application-server/chirpstack-application-server.toml
+    owner: appserver
+    group: appserver
+    mode: 0644
+    variable_start_string: '{['
+    variable_end_string: ']}'
+  notify: restart chirpstack as
+
+- name: Configure DNS resolver
+  become: yes
+  copy:
+    dest: /etc/chirpstack-application-server/resolv.conf
+    content: 'nameserver 127.0.0.1'
+    owner: appserver
+    group: appserver
+    mode: 0644
+  notify: restart chirpstack as
+
+- name: Ensure service is started
+  become: yes
+  systemd:
+    name: chirpstack-application-server
+    state: started
+    enabled: yes
+    daemon_reload: yes

@@ -1,0 +1,6 @@
+---
+- hosts: join-servers
+  roles:
+  - configure_api
+  tags:
+  - api

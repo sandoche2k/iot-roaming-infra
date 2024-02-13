@@ -1,0 +1,118 @@
+---
+- name: Login to JS
+  ansible.builtin.uri:
+    url: 'http://{{ inventory_hostname }}:{{ join_server.external_api_port }}/api/internal/login'
+    method: POST
+    body:
+      email: admin
+      password: admin
+    body_format: json
+  register: login
+
+- name: Get NS list
+  ansible.builtin.uri:
+    url: 'http://{{ inventory_hostname }}:{{ join_server.external_api_port }}/api/network-servers'
+    method: GET
+    headers:
+      Grpc-Metadata-Authorization: 'Bearer {{ login.json.jwt }}'
+  register: ns_list
+
+- name: Create default NS
+  ansible.builtin.uri:
+    url: 'http://{{ inventory_hostname }}:{{ join_server.external_api_port }}/api/network-servers'
+    method: POST
+    status_code: [200, 409] # ignore conflict
+    headers:
+      Grpc-Metadata-Authorization: 'Bearer {{ login.json.jwt }}'
+    body:
+      networkServer:
+        name: NS
+        server: '{{ network_server_domain }}:{{ network_server_port }}'
+        caCert: "{{ lookup('file', 'certs.d/' ~ org ~ '/ca.pem') }}"
+        tlsCert: "{{ lookup('file', 'certs.d/' ~ org ~ '/' ~ inventory_hostname ~ '/client/ns-api-client.pem') }}"
+        tlsKey: "{{ lookup('file', 'certs.d/' ~ org ~ '/' ~ inventory_hostname ~ '/client/ns-api-client.key') }}"
+        routingProfileCACert: "{{ lookup('file', 'certs.d/' ~ org ~ '/ca.pem') }}"
+        routingProfileTLSCert: "{{ lookup('file', 'certs.d/' ~ org ~ '/' ~ network_server_hostname ~ '/client/js-api-client.pem') }}"
+        routingProfileTLSKey: "{{ lookup('file', 'certs.d/' ~ org ~ '/' ~ network_server_hostname ~ '/client/js-api-client.key') }}"
+    body_format: json
+  register: ns_response
+  vars:
+    network_server_hostname: "{{ inventory_hostname | ansible.builtin.regex_replace('^js', 'ns') }}"
+    network_server_domain: "{{ hostvars[network_server_hostname].network_server_netid }}.{{ netids_namespace }}"
+    network_server_port: "{{ hostvars[network_server_hostname].network_server.api_server_port }}"
+  when: 'ns_list.json.totalCount | int == 0'
+
+- name: Get NS list
+  ansible.builtin.uri:
+    url: 'http://{{ inventory_hostname }}:{{ join_server.external_api_port }}/api/network-servers?limit=1'
+    method: GET
+    headers:
+      Grpc-Metadata-Authorization: 'Bearer {{ login.json.jwt }}'
+  register: ns_list
+
+- name: Get service profiles list
+  ansible.builtin.uri:
+    url: 'http://{{ inventory_hostname }}:{{ join_server.external_api_port }}/api/service-profiles'
+    method: GET
+    headers:
+      Grpc-Metadata-Authorization: 'Bearer {{ login.json.jwt }}'
+  register: service_profile_list
+
+- name: Create service profile
+  ansible.builtin.uri:
+    url: 'http://{{ inventory_hostname }}:{{ join_server.external_api_port }}/api/service-profiles'
+    method: POST
+    status_code: [200, 409] # ignore conflict
+    headers:
+      Grpc-Metadata-Authorization: 'Bearer {{ login.json.jwt }}'
+    body:
+      serviceProfile:
+        networkServerID: '{{ ns_list.json.result[0].id }}'
+        drMin: 0
+        drMax: 5
+        name: "My Service Profile"
+        organizationID: 1 # default org
+    body_format: json
+  register: service_profile_response
+  vars:
+    network_server_hostname: "{{ inventory_hostname | ansible.builtin.regex_replace('^js', 'ns') }}"
+    network_server_domain: "{{ hostvars[network_server_hostname].network_server_netid }}.{{ netids_namespace }}"
+    network_server_port: "{{ hostvars[network_server_hostname].network_server.api_server_port }}"
+  when: 'service_profile_list.json.totalCount | int == 0'
+
+- name: Get service profile list
+  ansible.builtin.uri:
+    url: 'http://{{ inventory_hostname }}:{{ join_server.external_api_port }}/api/service-profiles?limit=1'
+    method: GET
+    headers:
+      Grpc-Metadata-Authorization: 'Bearer {{ login.json.jwt }}'
+  register: service_profile_list
+
+- name: Get applications list
+  ansible.builtin.uri:
+    url: 'http://{{ inventory_hostname }}:{{ join_server.external_api_port }}/api/applications'
+    method: GET
+    headers:
+      Grpc-Metadata-Authorization: 'Bearer {{ login.json.jwt }}'
+  register: application_list
+
+- name: Create appliication
+  ansible.builtin.uri:
+    url: 'http://{{ inventory_hostname }}:{{ join_server.external_api_port }}/api/applications'
+    method: POST
+    status_code: [200, 409] # ignore conflict
+    headers:
+      Grpc-Metadata-Authorization: 'Bearer {{ login.json.jwt }}'
+    body:
+      application:
+        name: MyApplication
+        description: demo
+        serviceProfileID: '{{ service_profile_list.json.result[0].id }}'
+        organizationID: 1 # default org
+    body_format: json
+  register: app_response
+  vars:
+    network_server_hostname: "{{ inventory_hostname | ansible.builtin.regex_replace('^js', 'ns') }}"
+    network_server_domain: "{{ hostvars[network_server_hostname].network_server_netid }}.{{ netids_namespace }}"
+    network_server_port: "{{ hostvars[network_server_hostname].network_server.api_server_port }}"
+  when: 'application_list.json.totalCount | int == 0'

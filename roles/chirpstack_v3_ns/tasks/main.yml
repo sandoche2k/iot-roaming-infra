@@ -1,0 +1,103 @@
+---
+- name: Download binary to hosts
+  become: yes
+  get_url:
+    url: "{{ network_server.download_url }}"
+    dest: /usr/local/bin/chirpstack-network-server
+    owner: root
+    group: root
+    mode: 0755
+  notify: restart chirpstack ns
+
+- name: Create user
+  become: yes
+  user:
+    system: true
+    name: netserver
+    create_home: false
+    shell: /usr/sbin/nologin
+    home: /etc/chirpstack-network-server
+
+- name: Create configs directory
+  become: yes
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: netserver
+    group: netserver
+    mode: 0700
+  loop:
+    - /etc/chirpstack-network-server
+    - /etc/chirpstack-network-server/certs
+
+- name: Create log directory
+  become: yes
+  file:
+    path: /var/log/chirpstack-network-server/
+    state: directory
+    owner: netserver
+    group: netserver
+
+- name: Copy CA certificate
+  become: yes
+  copy:
+    src: 'certs.d/{{ org }}/ca.pem'
+    dest: /etc/chirpstack-network-server/certs/ca.pem
+    owner: netserver
+    group: netserver
+    mode: 0644
+  notify: restart chirpstack ns
+
+- name: Copy certificates
+  become: yes
+  copy:
+    src: 'certs.d/{{ org }}/{{ inventory_hostname }}/'
+    dest: /etc/chirpstack-network-server/certs
+    owner: netserver
+    group: netserver
+    mode: 0644
+  notify: restart chirpstack ns
+
+- name: Install service
+  become: yes
+  copy:
+    src: chirpstack-network-server.service
+    dest: /etc/systemd/system/chirpstack-network-server.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart chirpstack ns
+
+- name: Copy configuration
+  become: yes
+  template:
+    src: 'chirpstack-network-server.toml'
+    dest: /etc/chirpstack-network-server/chirpstack-network-server.toml
+    owner: netserver
+    group: netserver
+    mode: 0644
+    variable_start_string: '{['
+    variable_end_string: ']}'
+  vars:
+    join_server_hostname: "{[ inventory_hostname | ansible.builtin.regex_replace('^ns', 'js') ]}"
+    join_server_domain: "{[ hostvars[join_server_hostname].join_eui | reverse | join('.') ]}"
+    join_server_port: "{[ hostvars[join_server_hostname].join_server.join_server_port ]}"
+  notify: restart chirpstack ns
+
+- name: Configure DNS resolver
+  become: yes
+  copy:
+    dest: /etc/chirpstack-network-server/resolv.conf
+    content: 'nameserver 127.0.0.1'
+    owner: netserver
+    group: netserver
+    mode: 0644
+  notify: restart chirpstack ns
+
+- name: Ensure service is started
+  become: yes
+  systemd:
+    name: chirpstack-network-server
+    state: started
+    enabled: yes
+    daemon_reload: yes

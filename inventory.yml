@@ -1,0 +1,22 @@
+all:
+  children:
+    join-servers:
+      hosts:
+        js01.roaming.iot.rd.nic.fr:
+          org: Afnic-Test-1
+          ansible_user: debian
+          join_eui: '0000000000000000'
+        js02.roaming.iot.rd.nic.fr:
+          org: Afnic-Test-2
+          ansible_user: debian
+          join_eui: '0000000000000001'
+    network-servers:
+      hosts:
+        ns01.roaming.iot.rd.nic.fr:
+          org: Afnic-Test-1
+          ansible_user: debian
+          network_server_netid: '000000'
+        ns02.roaming.iot.rd.nic.fr:
+          org: Afnic-Test-2
+          ansible_user: debian
+          network_server_netid: '000001'

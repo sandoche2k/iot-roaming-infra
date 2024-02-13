@@ -1,0 +1,7 @@
+local_user: labs
+# Hash of the password, generated using `mkpasswd --method=sha-512`
+local_user_password: $6$mUxENE4nQaX5a.JO$dWqC0XQhmVUykceB8vlGuWbpZaUfSyXZSpU8ilcOBB9xsj0oWp5lqQKfZect.36GfTD8Rz8zmYzi9TWCWxgyh1
+
+netids_namespace: netids.iot.rd.nic.fr
+joineuis_namespace: joineuis.iot.rd.nic.fr
+allowed_client_domain: iot.rd.nic.fr

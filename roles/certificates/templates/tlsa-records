@@ -1,0 +1,15 @@
+{% for host in hostvars %}
+; {{ host }}
+{% if 'join-servers' in hostvars[host].group_names %}
+{{ hostvars[host].join_eui | reverse | join(".") }}.{{ joineuis_namespace }}. IN A {{ hostvars[host].ansible_default_ipv4.address }}
+{{ hostvars[host].join_eui | reverse | join(".") }}.{{ joineuis_namespace }}. IN AAAA {{ hostvars[host].ansible_default_ipv6.address }}
+{% endif %}
+{% if 'network-servers' in hostvars[host].group_names %}
+{{ hostvars[host].network_server_netid }}.{{ netids_namespace }}. IN A {{ hostvars[host].ansible_default_ipv4.address }}
+{{ hostvars[host].network_server_netid }}.{{ netids_namespace }}. IN AAAA {{ hostvars[host].ansible_default_ipv6.address }}
+{% endif %}
+{% for name in hostvars[host].records %}
+{{ name }}. 3600 IN TLSA {{ hostvars[host].records[name] }}
+{% endfor %}
+
+{% endfor %}

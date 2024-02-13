@@ -1,0 +1,8 @@
+---
+- name: restart chirpstack ns
+  become: yes
+  systemd:
+    name: chirpstack-network-server
+    state: restarted
+    daemon_reload: true
+    enabled: yes

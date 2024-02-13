@@ -1,0 +1,46 @@
+- name: Create certificate directory
+  file:
+    path: '{{ cert_path | dirname }}'
+    state: directory
+  delegate_to: localhost
+
+- name: Generate private key
+  community.crypto.openssl_privatekey:
+    path: '{{ cert_path }}.key'
+    type: ECC
+    curve: secp256r1
+    mode: 0600
+  delegate_to: localhost
+
+- name: Create certificate signing request (CSR) for self-signed certificate
+  community.crypto.openssl_csr:
+    path: '{{ cert_path }}.csr'
+    privatekey_path: '{{ cert_path }}.key'
+    common_name: '{{ common_name }}'
+    organization_name: '{{ org }}'
+    key_usage:
+      - digitalSignature
+    extended_key_usage: '{{ ["clientAuth"] if usage == "client" else ["serverAuth"] }}'
+    key_usage_critical: true
+    basic_constraints:
+      - 'CA:FALSE'
+    basic_constraints_critical: true
+  delegate_to: localhost
+
+- name: Create self-signed certificate from CSR
+  community.crypto.x509_certificate:
+    path: '{{ cert_path }}.pem'
+    csr_path: '{{ cert_path }}.csr'
+    privatekey_path: '{{ cert_path }}.key'
+    provider: ownca
+    ownca_path: '{{ ca_path }}.pem'
+    ownca_privatekey_path: '{{ ca_path }}.key'
+    mode: 0600
+    return_content: yes
+  register: cert
+  delegate_to: localhost
+
+- name: Create TLSA record
+  set_fact:
+    records: '{{ records | default({}) | combine({dane_id ~ "." ~ common_name: cert.certificate | dane_record }) }}'
+  when: 'dane_id is defined'

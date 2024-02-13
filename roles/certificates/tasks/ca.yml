@@ -1,0 +1,37 @@
+- name: Create certificate directory
+  file:
+    path: '{{ cert_path | dirname }}'
+    state: directory
+  delegate_to: localhost
+
+- name: Generate private key
+  community.crypto.openssl_privatekey:
+    path: '{{ cert_path }}.key'
+    type: ECC
+    curve: secp256r1
+    mode: 0600
+  delegate_to: localhost
+
+- name: Create certificate signing request (CSR) for self-signed certificate
+  community.crypto.openssl_csr:
+    path: '{{ cert_path }}.csr'
+    privatekey_path: '{{ cert_path }}.key'
+    common_name: '{{ org }} CA'
+    organization_name: '{{ org }}'
+    use_common_name_for_san: false
+    basic_constraints:
+      - 'CA:TRUE'
+    basic_constraints_critical: true
+    key_usage:
+      - keyCertSign
+    key_usage_critical: true
+  delegate_to: localhost
+
+- name: Create self-signed certificate from CSR
+  community.crypto.x509_certificate:
+    path: '{{ cert_path }}.pem'
+    csr_path: '{{ cert_path }}.csr'
+    privatekey_path: '{{ cert_path }}.key'
+    provider: selfsigned
+    mode: 0600
+  delegate_to: localhost

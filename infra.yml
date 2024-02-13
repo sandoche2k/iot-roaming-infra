@@ -1,0 +1,48 @@
+---
+- hosts: all
+  roles:
+  - certificates
+  tags:
+  - certificates
+
+- hosts: all
+  roles:
+  - base
+  tags:
+  - base
+
+- hosts: all
+  roles:
+  - unbound
+  tags:
+  - dns-resolver
+
+- hosts: all
+  roles:
+  - postgres
+  tags:
+  - database
+
+- hosts: all
+  roles:
+  - redis
+  tags:
+  - redis
+
+- hosts: network-servers
+  roles:
+  - mqtt
+  tags:
+  - mqtt
+
+- hosts: join-servers
+  roles:
+  - chirpstack_v3_as
+  tags:
+  - join-server
+
+- hosts: network-servers
+  roles:
+  - chirpstack_v3_ns
+  tags:
+  - network-server

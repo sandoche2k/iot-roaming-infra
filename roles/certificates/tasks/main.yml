@@ -1,0 +1,63 @@
+---
+- name: Create certificate directory
+  file:
+    path: certs.d
+    state: directory
+  delegate_to: localhost
+  run_once: yes
+
+- name: Generate CA certs
+  run_once: true
+  include_tasks: ca.yml
+  vars:
+    cert_path: 'certs.d/{{ item }}/ca'
+  with_items: '{{ hostvars | dictsort | map(attribute="1.org") | unique | list }}'
+
+- name: Generate join server certs
+  include_tasks: certs.yml
+  vars:
+    cert_path: 'certs.d/{{ org }}/{{ inventory_hostname }}/{{ item.usage}}/{{ item.component }}'
+    dane_id: '{{ item.dane_id }}'
+    common_name: '{{ join_eui | reverse | join(".") }}.{{ joineuis_namespace }}'
+    ca_path: 'certs.d/{{ org }}/ca'
+    usage: '{{ item.usage }}'
+  when: '"join-servers" in group_names'
+  with_items:
+   - component: 'join-server'
+     dane_id: '_{{ join_server.join_server_port }}._tcp'
+     usage: 'server'
+   - component: 'js-api-server'
+     usage: 'server'
+   - component: 'ns-api-client'
+     usage: 'client'
+
+- name: Generate join server certs
+  include_tasks: certs.yml
+  vars:
+    cert_path: 'certs.d/{{ org }}/{{ inventory_hostname }}/{{ item.usage}}/{{ item.component }}'
+    dane_id: '{{ item.dane_id }}'
+    common_name: '{{ network_server_netid }}.{{ netids_namespace }}'
+    ca_path: 'certs.d/{{ org }}/ca'
+    usage: '{{ item.usage }}'
+  when: '"network-servers" in group_names'
+  with_items:
+   - component: 'join-client'
+     dane_id: '{{ network_server.dance_join_prefix }}'
+     usage: 'client'
+   - component: 'js-api-client'
+     usage: 'client'
+   - component: 'ns-api-server'
+     usage: 'server'
+   - component: 'roaming-server'
+     usage: 'server'
+     dane_id: '_{{ network_server.roaming_server_port }}._tcp'
+   - component: 'roaming-client'
+     usage: 'client'
+     dane_id: '{{ network_server.dance_roaming_prefix }}'
+
+- name: Generate zone file
+  run_once: true
+  delegate_to: localhost
+  template:
+    src: tlsa-records
+    dest: tlsa-records

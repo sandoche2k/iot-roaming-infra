@@ -1,0 +1,14 @@
+---
+- name: Install unbound
+  become: yes
+  apt:
+    name:
+    - unbound
+    state: present
+
+- name: Ensure unbound is started
+  become: yes
+  service:
+    name: unbound
+    state: started
+    enabled: yes

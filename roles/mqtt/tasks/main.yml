@@ -1,0 +1,27 @@
+- name: Install package
+  become: yes
+  apt:
+    name:
+      - mosquitto
+      - mosquitto-clients
+    update_cache: yes
+    state: present
+
+- name: Configure users
+  become: yes
+  blockinfile:
+    path: /etc/mosquitto/password_file
+    block: |
+      {{ mqtt.user }}:{{ mqtt.password | sha512_pbkdf2 }}
+    create: yes
+  notify: restart mqtt server
+
+- name: Configure server
+  become: yes
+  copy:
+    dest: /etc/mosquitto/conf.d/general.conf
+    content: |
+      password_file /etc/mosquitto/password_file
+      allow_anonymous false
+      listener 1883
+  notify: restart mqtt server

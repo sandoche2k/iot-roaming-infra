@@ -1,0 +1,58 @@
+---
+- name: Set hostname
+  become: yes
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Create user
+  become: yes
+  user:
+    name: "{{ local_user }}"
+    groups: sudo
+    append: true
+    state: present
+    shell: /bin/bash
+    password: "{{ local_user_password }}"
+
+- name: Confiigure SSH
+  become: yes
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication '
+    line: 'PasswordAuthentication yes'
+    validate: /usr/sbin/sshd -T -f %s
+  notify: reload ssh
+
+- name: Install common packages
+  become: yes
+  apt:
+    name:
+      # Needed for privileges escalation
+      # https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_privilege_escalation.html#resolving-temporary-file-error-messsages
+      - acl
+      # Debug tools
+      - lsof
+      - bind9-dnsutils
+      # Needed for certificates manipulations
+      # https://docs.ansible.com/ansible/latest/collections/community/crypto/x509_certificate_module.html#requirements
+      - python3-cryptography
+    update_cache: yes
+    state: present
+
+- name: Fix IPv6
+  become: yes
+  lineinfile:
+    path: /etc/network/interfaces.d/50-cloud-init
+    regexp: 'address ([0-9a-z:]+)'
+    line: '    address \1/128'
+    backrefs: yes
+  notify: restart networking
+
+- name: Fix IPv6 routing
+  become: yes
+  lineinfile:
+    path: /etc/network/interfaces.d/50-cloud-init
+    regexp: 'route add -A inet6 default gw ([0-9a-z:]+)'
+    line: '    post-up ip -6 route add \1 dev ens3 && route add -A inet6 default gw \1 || true'
+    backrefs: yes
+  notify: restart networking

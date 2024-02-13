@@ -1,0 +1,22 @@
+postgres:
+  database: chirpstack_ns
+  user: chirpstack_ns
+  password: chirpstack_ns
+
+mqtt:
+  user: labs
+  password: !vault |
+    $ANSIBLE_VAULT;1.1;AES256
+    33373331346533633666313239303339366536353932663631643232613963376236663235633965
+    3536326332376337343235363565643261343132663031390a313265343862626163306162636139
+    32633865613265316433376136616536623763616537393335613962393830353330383035383834
+    6566323636633038320a323830386330323762633464373562373537336262383534363562353461
+    61366235333066363861333038353930303731653164666438363035303435386331
+
+network_server_version: 3.16.0-test.1+dance-0.2.0
+network_server:
+  roaming_server_port: 443
+  api_server_port: 8000
+  dance_join_prefix: _ns-join-client
+  dance_roaming_prefix: _ns-roaming-client
+  download_url: "https://gitlab.rd.nic.fr/dance/chirpstack/network-server/-/releases/{{ network_server_version }}/downloads/chirpstack-network-server_linux-amd64"

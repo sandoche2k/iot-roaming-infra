@@ -1,0 +1,7 @@
+- name: Install Redis server
+  become: yes
+  apt:
+    name:
+      - redis
+    update_cache: yes
+    state: present

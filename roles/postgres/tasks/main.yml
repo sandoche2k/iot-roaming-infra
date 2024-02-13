@@ -1,0 +1,35 @@
+- name: Install PostgreSQL server
+  become: yes
+  apt:
+    name:
+      - postgresql
+      # psycopg2 is needed for ansible module to work
+      # https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_user_module.html#requirements
+      - python3-psycopg2
+    update_cache: yes
+    state: present
+
+- name: Create user
+  become: yes
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    name: '{{ postgres.user }}'
+    password: '{{ postgres.password }}'
+
+- name: Create database
+  become: yes
+  become_user: postgres
+  community.postgresql.postgresql_db:
+    name: '{{ postgres.database }}'
+    owner: '{{ postgres.user }}'
+
+- name: Adds postgis extension to the database acme in the schema foo
+  become: yes
+  become_user: postgres
+  community.postgresql.postgresql_ext:
+    name: '{{ item }}'
+    db: '{{ postgres.database }}'
+  when: '"join-servers" in group_names'
+  loop:
+  - pg_trgm
+  - hstore
