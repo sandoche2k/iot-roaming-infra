@@ -1,0 +1,24 @@
+; js01.roaming.iot.rd.nic.fr
+0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.joineuis.iot.rd.nic.fr. IN A 152.228.231.44
+0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.joineuis.iot.rd.nic.fr. IN AAAA 2001:41d0:404:400::23e
+_443._tcp.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.joineuis.iot.rd.nic.fr. 3600 IN TLSA 3 1 1 bd1aed30f2a45dca6db6d7094b6fec751a0d33827518fae275c98ae68928d494
+
+; js02.roaming.iot.rd.nic.fr
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.joineuis.iot.rd.nic.fr. IN A 57.128.16.37
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.joineuis.iot.rd.nic.fr. IN AAAA 2001:41d0:304:300::218c
+_443._tcp.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.joineuis.iot.rd.nic.fr. 3600 IN TLSA 3 1 1 85e027cc2e266b28f8c38ce38f0ad5528ee7ad057fd6bfae93e950cd0b294231
+
+; ns01.roaming.iot.rd.nic.fr
+000000.netids.iot.rd.nic.fr. IN A 152.228.231.243
+000000.netids.iot.rd.nic.fr. IN AAAA 2001:41d0:404:400::3ab
+_ns-join-client.000000.netids.iot.rd.nic.fr. 3600 IN TLSA 3 1 1 166bf5cf2beb438794632c075518a87e96eb24e22f754833a8e7670eb760fbb9
+_443._tcp.000000.netids.iot.rd.nic.fr. 3600 IN TLSA 3 1 1 341af031a75f5da0ddb43f2f6e93131297f3bf826913efcbc2541804bfea9393
+_ns-roaming-client.000000.netids.iot.rd.nic.fr. 3600 IN TLSA 3 1 1 fe5dd007e8f2d7dccf371e4c5b1be8a14f9582ce9fc57cbc8fc5d76580f63a31
+
+; ns02.roaming.iot.rd.nic.fr
+000001.netids.iot.rd.nic.fr. IN A 152.228.228.70
+000001.netids.iot.rd.nic.fr. IN AAAA 2001:41d0:404:400::a7f
+_ns-join-client.000001.netids.iot.rd.nic.fr. 3600 IN TLSA 3 1 1 861d8eefffb0ac1622b187e31a254a004a148f5d9b19e7ee924d8ee61f57f4dc
+_443._tcp.000001.netids.iot.rd.nic.fr. 3600 IN TLSA 3 1 1 a3cb8408737b4ab3c495dbf9c6593ba7c468b4c2f581fb3446648b889316d453
+_ns-roaming-client.000001.netids.iot.rd.nic.fr. 3600 IN TLSA 3 1 1 1646ff97eac001eb448bfde8327b7fd34c2ebd34dc33c9668bcb791fe65ee0b8
+

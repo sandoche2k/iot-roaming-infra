@@ -39,20 +39,21 @@
     update_cache: yes
     state: present
 
-- name: Fix IPv6
-  become: yes
-  lineinfile:
-    path: /etc/network/interfaces.d/50-cloud-init
-    regexp: 'address ([0-9a-z:]+)'
-    line: '    address \1/128'
-    backrefs: yes
-  notify: restart networking
-
-- name: Fix IPv6 routing
-  become: yes
-  lineinfile:
-    path: /etc/network/interfaces.d/50-cloud-init
-    regexp: 'route add -A inet6 default gw ([0-9a-z:]+)'
-    line: '    post-up ip -6 route add \1 dev ens3 && route add -A inet6 default gw \1 || true'
-    backrefs: yes
-  notify: restart networking
+#
+#- name: Fix IPv6
+#  become: yes
+#  lineinfile:
+#    path: /etc/network/interfaces.d/50-cloud-init
+#    regexp: 'address ([0-9a-z:]+)'
+#    line: '    address \1/128'
+#    backrefs: yes
+#  notify: restart networking
+#
+#- name: Fix IPv6 routing
+#  become: yes
+#  lineinfile:
+#    path: /etc/network/interfaces.d/50-cloud-init
+#    regexp: 'route add -A inet6 default gw ([0-9a-z:]+)'
+#    line: '    post-up ip -6 route add \1 dev ens3 && route add -A inet6 default gw \1 || true'
+#    backrefs: yes
+#  notify: restart networking
